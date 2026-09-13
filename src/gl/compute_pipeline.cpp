@@ -1,0 +1,48 @@
+#include "compute_pipeline.hpp"
+#include "shader_utils.hpp"
+#include "../constants.hpp"
+
+void ComputePipeline::init() {
+    const std::string src = load_shader_source("shaders/raytracer.glsl");
+    program = create_compute_program(src);
+}
+
+void ComputePipeline::run(
+    GLuint output_texture,
+    GLuint voxel_texture,
+    int frame,
+    const glm::vec3& camera_position,
+    const glm::vec3& camera_forward
+) {
+    glUseProgram(program);
+
+    glBindImageTexture(0, output_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_3D, voxel_texture);
+    GLint voxel_loc = glGetUniformLocation(program, "voxel_texture");
+    if (voxel_loc != -1) {
+        glUniform1i(voxel_loc, 1);
+    }
+
+    GLint frame_loc = glGetUniformLocation(program, "frame");
+    if (frame_loc != -1) {
+        glUniform1i(frame_loc, frame);
+    }
+
+    GLint pos_loc = glGetUniformLocation(program, "camera_position");
+    if (pos_loc != -1) {
+        glUniform3f(pos_loc, camera_position.x, camera_position.y, camera_position.z);
+    }
+
+    GLint fwd_loc = glGetUniformLocation(program, "camera_forward");
+    if (fwd_loc != -1) {
+        glUniform3f(fwd_loc, camera_forward.x, camera_forward.y, camera_forward.z);
+    }
+
+    const GLuint gx = (DISPLAY_WIDTH + 7) / 8;
+    const GLuint gy = (DISPLAY_HEIGHT + 7) / 8;
+
+    glDispatchCompute(gx, gy, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
+}
