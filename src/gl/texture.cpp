@@ -38,23 +38,3 @@ GLuint create_voxel_texture(const VoxelTextureInfo& texture) {
     return gpu_texture;
 }
 
-std::vector<unsigned char> read_voxel_texture(GLuint texture, std::size_t size) {
-    std::vector<unsigned char> voxels(size * size * size, 0);
-
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-    glBindTexture(GL_TEXTURE_3D, texture);
-    glGetTexImage(GL_TEXTURE_3D, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, voxels.data());
-    glBindTexture(GL_TEXTURE_3D, 0);
-
-    return voxels;
-}
-
-void upload_voxel_texture(GLuint texture, std::size_t size, const std::vector<unsigned char>& voxels) {
-    glBindTexture(GL_TEXTURE_3D, texture);
-    glTexImage3D(
-        GL_TEXTURE_3D, 0, GL_R8UI,
-        static_cast<GLsizei>(size), static_cast<GLsizei>(size), static_cast<GLsizei>(size),
-        0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, voxels.data()
-    );
-    glBindTexture(GL_TEXTURE_3D, 0);
-}

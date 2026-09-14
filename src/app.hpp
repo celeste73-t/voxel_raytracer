@@ -35,6 +35,6 @@ private:
     Performance performance;
 
     int frame = 0;
-    std::size_t occupied_voxels = 0;
+    int occupied_voxels = 0;
     std::chrono::steady_clock::time_point last_frame;
 };

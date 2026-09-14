@@ -2,6 +2,7 @@
 
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 layout (r8ui, binding = 0) uniform writeonly uimage3D voxel_image;
+layout (binding = 1, offset = 0) uniform atomic_uint occupied_voxels;
 
 const float NOISE_SCALE = 0.05;
 const float VOXEL_THRESHOLD = 0.0;
@@ -54,4 +55,7 @@ void main() {
     float value = perlin_noise(position);
     uint voxel = value >= VOXEL_THRESHOLD ? 1u : 0u;
     imageStore(voxel_image, coordinate, uvec4(voxel, 0u, 0u, 1u));
+    if (voxel != 0u) {
+        atomicCounterIncrement(occupied_voxels);
+    }
 }

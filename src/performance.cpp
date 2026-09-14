@@ -102,7 +102,7 @@ void Performance::record_frame(std::chrono::steady_clock::duration frame_time,
     compute_times.push_back(milliseconds(compute_time));
 }
 
-void Performance::write_report(int frame_count, std::size_t occupied_voxels) const {
+void Performance::write_report(int frame_count, int occupied_voxels) const {
     fs::create_directories(REPORT_DIRECTORY);
 
     const std::uint32_t report_number = next_report_number();
