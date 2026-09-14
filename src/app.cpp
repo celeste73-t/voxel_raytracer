@@ -48,14 +48,17 @@ App::App() {
   std::cout << "OpenGL version loaded: " << GLAD_VERSION_MAJOR(gl_version)
            << "." << GLAD_VERSION_MINOR(gl_version) << "\n";
 
+  glViewport(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+
   std::cout << "5. create_storage_texture...\n";
   output_tex = create_storage_texture(DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
   std::cout << "6. generate_voxels...\n";
 
-  const auto [voxel_tex, generated] = generate_voxels(VOXEL_TEXTURE_SIZE);
-  voxel_texture = voxel_tex;
-  occupied_voxels = generated;
+  const VoxelGenerationResult generated = generate_voxels(VOXEL_TEXTURE_SIZE);
+  voxel_texture = generated.voxel_texture;
+  light_buffer = generated.light_buffer;
+  occupied_voxels = generated.occupied_voxels;
 
   std::cout << "Generated voxel texture: "
             << VOXEL_TEXTURE_SIZE << "x" << VOXEL_TEXTURE_SIZE << "x" << VOXEL_TEXTURE_SIZE
@@ -72,6 +75,9 @@ App::App() {
 }
 
 App::~App() {
+  if (light_buffer != 0) {
+    glDeleteBuffers(1, &light_buffer);
+  }
   SDL_GL_DeleteContext(gl_context);
   SDL_DestroyWindow(window);
   SDL_Quit();
@@ -104,7 +110,7 @@ void App::write_session_report() {
 std::chrono::steady_clock::duration App::render() {
   const auto compute_start = std::chrono::steady_clock::now();
 
-  compute.run(output_tex, voxel_texture, frame, camera.position, camera.forward);
+  compute.run(output_tex, voxel_texture, light_buffer, frame, camera.position, camera.forward);
 
   const auto compute_time = std::chrono::steady_clock::now() - compute_start;
 

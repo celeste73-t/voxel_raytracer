@@ -29,6 +29,7 @@ private:
     DisplayPipeline display = DisplayPipeline();
     GLuint output_tex = 0;
     GLuint voxel_texture = 0;
+    GLuint light_buffer = 0;
 
     Camera camera;
     Control controls;

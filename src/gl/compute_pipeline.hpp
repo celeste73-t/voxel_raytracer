@@ -11,6 +11,7 @@ public:
     void run(
         GLuint output_texture,
         GLuint voxel_texture,
+        GLuint light_buffer,
         int frame,
         const glm::vec3& camera_position,
         const glm::vec3& camera_forward
@@ -20,6 +21,7 @@ private:
     GLuint program = 0;
 
     GLint voxel_loc;
+    GLint light_count_loc;
     GLint frame_loc;
     GLint pos_loc;
     GLint fwd_loc;
