@@ -17,8 +17,13 @@ layout (rgba32f, binding = 0) uniform writeonly image2D out_image;
 
 uniform int frame;
 uniform usampler3D voxel_texture;
+uniform ivec3 volume_size;
 uniform vec3 camera_position;
 uniform vec3 camera_forward;
+uniform vec3 camera_right;
+uniform vec3 camera_up;
+uniform vec2 ray_scale;
+uniform vec2 inverse_output_size;
 uniform int light_count;
 
 layout (std430, binding = 0) readonly buffer LightBuffer {
@@ -28,22 +33,17 @@ layout (std430, binding = 0) readonly buffer LightBuffer {
 const int MAX_RAY_STEPS = 256;
 const float CAMERA_FOV = radians(60.0);
 const float LIGHT_RADIUS = 1.5;
-const vec3 GLOBAL_LIGHT_DIRECTION = vec3(-0.5, 0.8, -0.6);
+const vec3 GLOBAL_LIGHT_DIRECTION = vec3(-0.476731, 0.762493, -0.57212);
 const float GLOBAL_LIGHT_INTENSITY = 0.12;
 
 Ray generate_ray(vec2 uv) {
-    float h = tan(CAMERA_FOV / 2.0);
-    float aspect = float(imageSize(out_image).x) / float(imageSize(out_image).y);
-    float w = h * aspect;
-
     vec2 screen = uv * 2.0 - 1.0;
 
-    vec3 forward = normalize(camera_forward);
-    vec3 up = vec3(0,1,0);
-    vec3 right = normalize(cross(forward, up));
-    up = normalize(cross(right, forward));
-
-    vec3 ray_dir = normalize(forward + screen.x * w * right + screen.y * h * up);
+    vec3 ray_dir = normalize(
+        camera_forward +
+        screen.x * ray_scale.x * camera_right +
+        screen.y * ray_scale.y * camera_up
+    );
 
     return Ray(camera_position, ray_dir);
 }
@@ -78,7 +78,6 @@ bool intersect_volume(Ray ray, vec3 volume_min, vec3 volume_max, out float entry
 }
 
 bool trace_voxels(Ray ray, out vec3 hit_normal, out float hit_distance) {
-    ivec3 volume_size = textureSize(voxel_texture, 0);
     vec3 volume_min = vec3(0.0);
     vec3 volume_max = vec3(volume_size);
     float entry;
@@ -129,7 +128,6 @@ bool trace_voxels(Ray ray, out vec3 hit_normal, out float hit_distance) {
 }
 
 bool trace_shadow(Ray ray, float max_distance) {
-    ivec3 volume_size = textureSize(voxel_texture, 0);
     float entry;
     float exit;
     vec3 entry_normal;
@@ -190,7 +188,7 @@ float intersect_light(Ray ray, vec3 center) {
 
 void main() {
     ivec2 pix = ivec2(gl_GlobalInvocationID.xy);
-    vec2 uv = vec2(pix) / vec2(imageSize(out_image));
+    vec2 uv = vec2(pix) * inverse_output_size;
     Ray ray = generate_ray(uv);
     vec3 color = vec3(0.08, 0.10, 0.16);
     vec3 hit_normal;
@@ -210,14 +208,15 @@ void main() {
         } else {
             vec3 hit_position = ray.origin + ray.dir * hit_distance;
             vec3 surface_color = vec3(0.25, 0.7, 0.35);
-            vec3 global_direction = normalize(GLOBAL_LIGHT_DIRECTION);
-            float global_diffuse = max(dot(hit_normal, global_direction), 0.0);
+                    float global_diffuse = max(dot(hit_normal, GLOBAL_LIGHT_DIRECTION), 0.0);
             vec3 lighting = vec3(0.08) + vec3(global_diffuse * GLOBAL_LIGHT_INTENSITY);
 
             for (int light_index = 0; light_index < light_count; ++light_index) {
                 vec3 to_light = lights[light_index].xyz - hit_position;
-                float light_distance = length(to_light);
-                vec3 light_direction = to_light / max(light_distance, 0.0001);
+                float light_distance_squared = dot(to_light, to_light);
+                float inverse_light_distance = inversesqrt(max(light_distance_squared, 0.000001));
+                float light_distance = light_distance_squared * inverse_light_distance;
+                vec3 light_direction = to_light * inverse_light_distance;
                 float diffuse = max(dot(hit_normal, light_direction), 0.0);
                 if (diffuse <= 0.0 || trace_shadow(
                     Ray(hit_position + hit_normal * 0.01, light_direction),
@@ -226,7 +225,7 @@ void main() {
                     continue;
                 }
 
-                float attenuation = 1.0 / (1.0 + 0.002 * light_distance * light_distance);
+                float attenuation = 1.0 / (1.0 + 0.002 * light_distance_squared);
                 lighting += vec3(1.0, 0.9, 0.7) * diffuse * attenuation;
             }
 

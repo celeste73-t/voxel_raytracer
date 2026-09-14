@@ -21,7 +21,12 @@ private:
     GLuint program = 0;
 
     GLint voxel_loc;
+    GLint volume_size_loc;
     GLint light_count_loc;
+    GLint ray_scale_loc;
+    GLint inverse_output_size_loc;
+    GLint camera_right_loc;
+    GLint camera_up_loc;
     GLint frame_loc;
     GLint pos_loc;
     GLint fwd_loc;
