@@ -139,5 +139,11 @@ void Performance::write_report(int frame_count, std::size_t occupied_voxels) con
 
     writer.flush();
 
+    fs::copy_file(
+        report_path,
+        "report.txt",
+       fs::copy_options::overwrite_existing
+    );
+
     std::cout << "Session report created with a new number\n";
 }

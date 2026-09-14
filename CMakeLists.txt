@@ -1,5 +1,9 @@
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-	set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+	if(DEFINED ENV{VCPKG_ROOT})
+		set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE FILEPATH "")
+	elseif(WIN32 AND EXISTS "C:/vcpkg/scripts/buildsystems/vcpkg.cmake")
+		set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE FILEPATH "")
+	endif()
 endif()
 
 cmake_minimum_required(VERSION 3.25)
@@ -9,6 +13,10 @@ project(c3ddda VERSION 0.1.0 LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(WIN32 AND EXISTS "C:/vcpkg/installed/x64-windows")
+	list(PREPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows")
+endif()
 
 include(FetchContent)
 
