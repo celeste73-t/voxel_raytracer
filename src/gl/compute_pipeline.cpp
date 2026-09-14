@@ -5,6 +5,12 @@
 void ComputePipeline::init() {
     const std::string src = load_shader_source("shaders/raytracer.glsl");
     program = create_compute_program(src);
+
+    voxel_loc = glGetUniformLocation(program, "voxel_texture");
+    frame_loc = glGetUniformLocation(program, "frame");
+    pos_loc = glGetUniformLocation(program, "camera_position");
+    fwd_loc = glGetUniformLocation(program, "camera_forward");
+
 }
 
 void ComputePipeline::run(
@@ -20,22 +26,18 @@ void ComputePipeline::run(
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_3D, voxel_texture);
-    GLint voxel_loc = glGetUniformLocation(program, "voxel_texture");
     if (voxel_loc != -1) {
         glUniform1i(voxel_loc, 1);
     }
 
-    GLint frame_loc = glGetUniformLocation(program, "frame");
     if (frame_loc != -1) {
         glUniform1i(frame_loc, frame);
     }
 
-    GLint pos_loc = glGetUniformLocation(program, "camera_position");
     if (pos_loc != -1) {
         glUniform3f(pos_loc, camera_position.x, camera_position.y, camera_position.z);
     }
 
-    GLint fwd_loc = glGetUniformLocation(program, "camera_forward");
     if (fwd_loc != -1) {
         glUniform3f(fwd_loc, camera_forward.x, camera_forward.y, camera_forward.z);
     }

@@ -18,4 +18,9 @@ public:
 
 private:
     GLuint program = 0;
+
+    GLint voxel_loc;
+    GLint frame_loc;
+    GLint pos_loc;
+    GLint fwd_loc;
 };

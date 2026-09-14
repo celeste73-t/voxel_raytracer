@@ -1,0 +1,21 @@
+Voxel Raytracer Session Report
+==============================
+report_number=0008
+voxel_texture_size=500^3
+voxel_count=125000000
+occupied_voxels=62399086
+display_width=1920
+display_height=1080
+frames=1437
+session_seconds=12.295
+average_fps=133.52
+frame_ms_samples=1437
+frame_ms_average=7.4895
+frame_ms_min=0.3252
+frame_ms_p95=9.9029
+frame_ms_max=52.4470
+compute_ms_samples=1437
+compute_ms_average=0.0097
+compute_ms_min=0.0018
+compute_ms_p95=0.0131
+compute_ms_max=0.2494
